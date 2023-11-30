@@ -1,0 +1,13 @@
+@font-face {
+    font-family: '39Code';
+    src: url('39code.ttf') format('truetype');
+}
+
+#order-sn {
+    font-family: '39Code';
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
