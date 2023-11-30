@@ -1,15 +1,23 @@
+var isProcessed = false;
+
 function transformTable() {
 
+    if (isProcessed) {
+        return;
+    }
+
     // 判斷網頁標題是否為"7-ELEVEN 交貨便服務單"
-    if (document.title == '7-ELEVEN 交貨便服務單') {
+    if (document.title.trim() == '7-ELEVEN 交貨便服務單') {
         // 處理表格
         Process7ElevenTable();
+        isProcessed = true;
     }
 
     // 判斷網頁標題是否為"全家店到店寄件單"
-    if (document.title == '全家店到店寄件單') {
+    if (document.title.trim() == '全家店到店寄件單') {
         // 處理表格
         ProcessFamilyMartTable();
+        isProcessed = true;
     }
 
     if (document.title == '蝦皮賣家中心') {
@@ -480,7 +488,7 @@ function PrintShopeeOrder() {
     
     setTimeout(function () {
         newWindow.print();
-        // newWindow.close();
+        newWindow.close();
     }, 1000);
 
 }
@@ -504,5 +512,10 @@ var observer = new MutationObserver(function(mutations) {
 observer.observe(document.body, { childList: true, subtree: true });
 
 console.log("content.js");
+
+// 註冊載入事件，執行 transformTable
+window.addEventListener('load', function () {
+    transformTable();
+});
 
 //https://seller.shopee.tw/api/v3/order/get_one_order?SPC_CDS=912a3577-0877-4019-8f46-bbe0af23b4fa&SPC_CDS_VER=2&order_id=109596557367844
