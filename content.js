@@ -416,7 +416,9 @@ function PrintShopeeOrder() {
         // 使用 Regex 抓取出連續大於等於 5 碼數字
         var code = "";
         var reg = /\d{5,}/g;
-        var result = reg.exec(itemMeta.innerText + itemTitle.innerText);
+        var testItemStr = itemMeta != null ? itemMeta.innerText : "";
+        testItemStr += itemTitle != null ? itemTitle.innerText : "";
+        var result = reg.exec(testItemStr);
         
         if (result != null) {
             // 取出最後一個結果
