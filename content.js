@@ -318,13 +318,10 @@ function PrintShopeeOrder() {
     body {
         width: 10cm;
         margin: 0;
-        padding: 0.5cm;
+        padding: 0.75cm;
     }
 
     th {
-        background-color: #000000 !important;
-        -webkit-print-color-adjust: exact;
-        color: #FFFFFF;
     }
 
 
@@ -445,7 +442,7 @@ function PrintShopeeOrder() {
         // 商品
         itemTr += '<td>' + itemTitle.innerText + '</td>';
         // 規格
-        var itemMetaText = itemMeta.innerText.substring(3).trim();
+        var itemMetaText = itemMeta != null ? itemMeta.innerText.substring(3).trim() : "";
         itemTr += '<td>' + itemMetaText + '</td>';
         // 單價
         var itemPrice = item.querySelector("div.price");
