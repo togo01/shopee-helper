@@ -386,8 +386,8 @@ function PrintShopeeOrder() {
 
     newWindow.document.write('<table>');
 
-    var heads = ["條碼", "商品", "規格", "單價", "數量", "小計"];
-    var headMinWidths = [6, -1, 20, 6, 6, 6];
+    var heads = ["商品", "條碼", "單價", "數量", "小計"];
+    var headMinWidths = [-1, 12, 6, 6, 6];
     var headTr = '<tr>';
 
     for (var i = 0; i < heads.length; i++) {
@@ -410,6 +410,12 @@ function PrintShopeeOrder() {
         var itemTitle = item.querySelector("div.product-name");
         var itemMeta = item.querySelector("div.product-meta > div");
 
+        var itemTr = '<tr>';
+
+        // 商品
+        var itemMetaText = itemMeta != null ? "<br>" + itemMeta.innerText.substring(3).trim() : "";
+        itemTr += '<td>' + itemTitle.innerText + itemMetaText + '</td>';
+
         // 使用 Regex 抓取出連續大於等於 5 碼數字
         var code = "";
         var reg = /\d{5,}/g;
@@ -420,7 +426,7 @@ function PrintShopeeOrder() {
         if (result != null) {
             // 取出最後一個結果
             code = result[0];
-            var itemTr = '<tr>';
+            
             // 編號 code-128, Code A(ASCII:103), %, 12345, Stop(ASCII:106)
             var startCodeStr = 'Ë';
             var stopCodeStr = 'Î';
@@ -435,15 +441,11 @@ function PrintShopeeOrder() {
             codeStr += String.fromCharCode(checkSum > 94 ? checkSum + 100 : checkSum + 32);
             codeStr += stopCodeStr;
 
-            itemTr += '<td class="center" style="font-family: \'Code 128\', sans-serif; font-size: 20px; padding: 0;">' + codeStr + '</td>';
+            itemTr += '<td class="center" style="font-family: \'Code 128\', sans-serif; font-size: 35px; padding: 0;">' + codeStr + '</td>';
         } else {
             itemTr += '<td class="center">N/A</td>';
         }
-        // 商品
-        itemTr += '<td>' + itemTitle.innerText + '</td>';
-        // 規格
-        var itemMetaText = itemMeta != null ? itemMeta.innerText.substring(3).trim() : "";
-        itemTr += '<td>' + itemMetaText + '</td>';
+        
         // 單價
         var itemPrice = item.querySelector("div.price");
         itemTr += '<td class="right">' + itemPrice.innerText + '</td>';
