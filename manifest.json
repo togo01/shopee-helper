@@ -1,17 +1,28 @@
 {
-    "manifest_version": 2,
-    "name": "宗明藥局蝦皮小幫手",
-    "version": "1.0",
-    "permissions": [
-      "activeTab"
-    ],
-    "content_scripts": [
-      {
-        "matches": ["https://seller.shopee.tw/*", "file:///*"],
-        "js": ["jquery-3.7.1.min.js", "content.js"],
-        "css": ["font.css"],
-        "run_at": "document_end"
-      }
-    ]
-  }
-  
+  "manifest_version": 2,
+  "name": "宗明藥局蝦皮小幫手",
+  "version": "1.0",
+  "permissions": [
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://seller.shopee.tw/*",
+        "file:///*"
+      ],
+      "js": [
+        "jquery-3.7.1.min.js",
+        "printShopeeOrder.js",
+        "process7ElevenTable.js",
+        "processFamilyMartTable.js",
+        "getProductCode.js",
+        "content.js"
+      ],
+      "css": [
+        "font.css"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}
