@@ -21,31 +21,18 @@ function transformTable() {
         isProcessed = true;
     }
 
-    if (document.title == '蝦皮賣家中心') {
-
-        console.log("蝦皮賣家中心");
-
-        if (!isScriptInjected) {
-            isScriptInjected = true;
-
-        }
-
-
-        var activePageItem = document.querySelectorAll("a.router-link-active.breadcrumb-name.active");
-
-        if (activePageItem.length > 0) {
-
-            var activePageName = activePageItem[0].innerText;
-
-            console.log("activePageName: " + activePageName);
-
-            if (activePageName == '訂單明細') {
-                ActiveShopeePrintOrderFunc();
-                // 取得自編碼
-                GetProductCode();
-            }
-
-        }
+    // 判斷網址是否為 https://seller.shopee.tw/portal/sale/order/<order_id>
+    var url = window.location.href;
+    var reg = /https:\/\/seller.shopee.tw\/portal\/sale\/order\/\d+/g;
+    var result = reg.exec(url);
+    if (result != null) {
+        
+        console.log("訂單明細頁面");
+        // 新增列印出貨單按鈕
+        ActiveShopeePrintOrderFunc();
+        // 取得自編碼
+        GetProductCode();
+    
     }
 
 }
@@ -69,7 +56,7 @@ function GetProductCode() {
     stock.className = "stock";
     stock.innerText = "庫存";
     stock.style.flex = "0 0 100px";
-    stock.style.textAlign = "left";
+    stock.style.textAlign = "right";
     qty.after(stock);
 
 
@@ -537,38 +524,76 @@ function ProcessFamilyMartTable() {
 
     for (var i = 0; i < imgs.length; i++) {
         var img = imgs[i];
+
+        // 獲取 img 原始長寬
+        var iw = img.width;
+        var ih = img.height;
+
+        // 建立一個 1/4 img 大小的 canvas 元素
+        var canvas = document.createElement('canvas');
+        canvas.width = iw;
+        canvas.height = ih;
+        var ctx = canvas.getContext('2d');
+    
         
         for (var y = 0; y < 2; y++) {
             for (var x = 0; x < 2; x++) {
+                // 淨空 canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // 將 img 繪製到 canvas 中
+                ctx.drawImage(img, -iw / 2 * x * 2, -ih / 2 * y * 2, img.width * 2, img.height * 2);
+
+                // 判斷 Canvas 中黑色像素的數量
+                var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                var data = imageData.data;
+                var count = 0;
+                
+                for (var j = 0; j < data.length; j += 4) {
+                    var r = data[j];
+                    var g = data[j + 1];
+                    var b = data[j + 2];
+                    var alpha = data[j + 3];
+                    if (r == 0 && g == 0 && b == 0 && alpha == 255) {
+                        count++;
+                    }
+                }
+
+                // 如果黑色像素數量小於 1000, 則跳過
+                if (count < 1000) {
+                    continue;
+                }
+
                 // 建立新的 tr 元素
-                var newTr = document.createElement('tr');
+                let newTr = document.createElement('tr');
                 newTable.appendChild(newTr);
 
                 // 建立新的 td 元素
-                var newTd = document.createElement('td');
+                let newTd = document.createElement('td');
                 newTd.style.width = h/15*10 + 'px';
                 newTd.style.height = h + 'px';
                 newTr.appendChild(newTd);
 
                 // 建立新的 div 元素
-                var newDiv = document.createElement('div');
+                let newDiv = document.createElement('div');
                 newDiv.style.overflow = 'hidden';
                 newDiv.style.width = w + 'px';
                 newDiv.style.height = h + 'px';
                 newDiv.style.margin = '10px auto 0 auto';
 
                 // 建立新的 img 元素
-                var newImg = document.createElement('img');
-                newImg.src = img.src;
-                newImg.style.objectPosition = (-w * x) + 'px ' + (-h * y) + 'px';
-                newImg.style.width = '200%';
-                newImg.style.height = '200%';
+                let newImg = document.createElement('img');
+                newImg.src = canvas.toDataURL();
+                // newImg.style.objectPosition = (-w * x) + 'px ' + (-h * y) + 'px';
+                newImg.style.width = '100%';
+                newImg.style.height = '100%';
 
                 // 將 img 元素加入到 div 元素中
                 newDiv.appendChild(newImg);
 
                 // 將 div 元素加入到 td 元素中
                 newTd.appendChild(newDiv);
+
             }
         }
 
