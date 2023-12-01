@@ -1,6 +1,6 @@
 {
     "server": "192.168.2.99",
     "user_id": "sa",
-    "pasword": "",
+    "password": "",
     "database": "Drugstore"
 }
