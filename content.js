@@ -57,7 +57,7 @@ function GetProductCode() {
     if (alreadyGetProductCode) {
         return;
     }
-    alreadyGetProductCode = true;
+    
 
     // 使用 fetch 呼叫 API http://localhost:8080/product_by_barcode?q=國際碼末五碼
 
@@ -375,7 +375,7 @@ function GetProductCode() {
 
 
     
-
+    alreadyGetProductCode = true;
     
 
 }
