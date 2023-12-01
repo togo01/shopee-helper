@@ -87,10 +87,15 @@ function PrintShopeeOrder() {
         border: 0px solid black;
         border-collapse: collapse;
         border-bottom: 1px solid black;
+        font-weight: bold;
     }
 
     td, th {
         padding: 0.1cm;
+    }
+
+    td {
+        font-size: 14px;
     }
 
     table {
