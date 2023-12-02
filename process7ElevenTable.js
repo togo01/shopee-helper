@@ -94,4 +94,9 @@ function Process7ElevenTable() {
     // 移除 Panel1 元素
     var panel1 = document.getElementById('Panel1');
     panel1.remove();
+
+    setTimeout(function () {
+        window.print();
+        window.close();
+    }, 1000);
 }

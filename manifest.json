@@ -1,15 +1,32 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "宗明藥局蝦皮小幫手",
   "version": "1.0",
-  "permissions": [
-    "activeTab"
+  "host_permissions": [
+    "*://*.shopee.tw/*"
   ],
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "cookies",
+    "*://*.shopee.tw/*"
+  ],
+  "optional_permissions": [
+    "topSites"
+  ],
+  "optional_host_permissions":[
+    "https://*/*",
+    "http://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
         "https://seller.shopee.tw/*",
         "https://external2.shopee.tw/*",
+        "https://epayment.7-11.com.tw/C2C/C2CWeb/*",
         "file:///*"
       ],
       "js": [
@@ -24,6 +41,30 @@
         "font.css"
       ],
       "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://seller.shopee.tw/awbprint*"
+      ],
+      "js": [
+        "processShopeeAwb.js"
+      ],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://external2.shopee.tw/*"
+      ],
+      "js": [
+        "jquery-3.7.1.min.js",
+        "pdf.mjs",
+        "processHilifeTable.js"
+      ],
+      "css": [
+        "font.css"
+      ],
+      "run_at": "document_end"
     }
+
   ]
 }

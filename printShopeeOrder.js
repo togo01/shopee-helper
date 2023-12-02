@@ -8,6 +8,171 @@ function ActiveShopeePrintOrderFunc() {
     
     console.log("ActiveShopeePrintOrderFunc")
 
+    // https://seller.shopee.tw/api/v3/order/get_package?SPC_CDS=cf6ef95b-9c4e-466f-9984-627ed47a1ef6&SPC_CDS_VER=2&order_id=155127848209946' \
+    
+    // 取得 SPC_CDS Cookie
+    var cookies = document.cookie.split(';');
+    var spcCds = null;
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.startsWith('SPC_CDS=')) {
+            spcCds = cookie.substring(8);
+            break;
+        }
+    }
+
+    let fullCookie = "";
+    chrome.runtime.sendMessage({ action: "getCookies", url: window.location.href }, response => {
+        if (response && response.cookies) {
+            console.log("Cookies for current page:", response.cookies);
+            // 在這裡處理 cookie
+            for (var i = 0; i < response.cookies.length; i++) {
+                var cookie = response.cookies[i];
+                fullCookie += cookie.name + "=" + cookie.value + ";";
+            }
+        }
+    });
+
+    // 取得 order_id
+    var url = window.location.href;
+    var reg = /https:\/\/seller.shopee.tw\/portal\/sale\/order\/(\d+)/g;
+    var result = reg.exec(url);
+    if (result == null) {
+        return;
+    }
+
+    var orderID = result[1];
+    var shopID = "";
+
+    // https://seller.shopee.tw/api/sellermisc/shop_info/get_shop_inactive_status/?SPC_CDS=a165db25-318b-4ee4-b8c7-7ba8031e173b&SPC_CDS_VER=2
+    fetch('https://seller.shopee.tw/api/sellermisc/shop_info/get_shop_inactive_status/?SPC_CDS=' + spcCds + '&SPC_CDS_VER=2')
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        shopID = data.data.shop_id;
+        console.log("shopID: " + shopID);
+    });
+
+    // get_package
+    function updatePackageData() {
+        var getPackageUrl = 'https://seller.shopee.tw/api/v3/order/get_package?SPC_CDS=' + spcCds + '&SPC_CDS_VER=2&order_id=' + orderID;
+        console.log("getPackageUrl: " + getPackageUrl);
+        fetch(getPackageUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            // data.data.package_list[0].package_number
+            // data.data.package_list[0].channel_id
+            // data.data.package_list[0].consignment_no
+
+            let orderInfo = data.data.order_info;
+
+            // 取得 consignment_no 
+            var consignmentNo = data.data.order_info.package_list[0].consignment_no;
+            console.log("consignmentNo: " + consignmentNo);
+
+            if (consignmentNo == null || consignmentNo == "") {
+                // 找到 #PrintShopeeShipButton 按鈕
+                var button = document.getElementById("PrintShopeeShipButton");
+                // 如果按鈕已經是安排出貨, 則不處理
+                if (button.querySelector("span").innerText == "安排出貨") {
+                    setTimeout(updatePackageData, 1000);
+                    return;
+                }
+                // 內容的 span 變成 "安排出貨"
+                button.querySelector("span").innerText = "安排出貨";
+                // 監聽按鈕的點擊事件
+                button.addEventListener('click', function () {
+                    // 安排出貨
+                    var nextButton = document.querySelector('.next > .btns > .shopee-popover > .shopee-popover__ref > button.shopee-button.shopee-button--primary');
+                    nextButton.click();
+                });
+            } else {
+                // POST https://seller.shopee.tw/api/v3/logistics/create_sd_jobs?SPC_CDS=a165db25-318b-4ee4-b8c7-7ba8031e173b&SPC_CDS_VER=2&async_sd_version=0.2
+
+                // 找到 #PrintShopeeShipButton 按鈕
+                var button = document.getElementById("PrintShopeeShipButton");
+                // 內容的 span 變成 "列印寄件單"
+                button.querySelector("span").innerText = "列印寄件單";
+                // 移除所有的監聽事件
+                var newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                button = newButton;
+                // 監聽按鈕的點擊事件
+                button.addEventListener('click', function () {
+                    fetch('https://seller.shopee.tw/api/v3/logistics/create_sd_jobs?SPC_CDS=' + spcCds + '&SPC_CDS_VER=2&async_sd_version=0.2', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(CreateSDJobsPayload(shopID, orderInfo)),
+                    }).then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+
+                        // 取得 job_id
+                        var jobID = data.data.list[0].job_id;
+                        console.log("jobID: " + jobID);
+
+                        // fulfillment_shipping_method
+                        var fulfillment_shipping_method = orderInfo.package_list[0].fulfillment_shipping_method;
+
+                        var url = '';
+                        if (fulfillment_shipping_method == 7 || fulfillment_shipping_method == 8) {
+                            url = 'https://seller.shopee.tw/api/v3/logistics/download_sd_job?job_id=' + jobID;
+                        }
+
+                        if (fulfillment_shipping_method == 30015) {
+                            // seller.shopee.tw/awbprint?job_id=SDK0001_ bdb67d9a4bad7824d272acaf0560a662&shop_id =910507994&first_time=0
+                            // url = 'https://seller.shopee.tw/awbprint?job_id=' + jobID + '&shop_id=' + shopID + '&first_time=0';
+                            url = 'https://seller.shopee.tw/api/v3/logistics/download_sd_job?job_id=' + jobID;
+
+                            payload = {
+                                "pdf_url": url,
+                                "cookie": fullCookie,
+                            }
+                            // 將 payload 轉換為可附加在 url 後的字串
+                            payload = encodeURIComponent(JSON.stringify(payload));
+                            url = 'http://127.0.0.1:8080/print_pdf?payload=' + payload;
+                        }
+
+                        if (fulfillment_shipping_method == 25) {
+                            // seller.shopee.tw/awbprint?job_id=SDK0001_ bdb67d9a4bad7824d272acaf0560a662&shop_id =910507994&first_time=0
+                            // url = 'https://seller.shopee.tw/awbprint?job_id=' + jobID + '&shop_id=' + shopID + '&first_time=0';
+                            url = 'https://seller.shopee.tw/api/v3/logistics/download_sd_job?job_id=' + jobID;
+
+                            payload = {
+                                "pdf_url": url,
+                                "cookie": fullCookie,
+                                "crop": {
+                                    "x": 0,
+                                    "y": 0,
+                                    "width": 0.5,
+                                    "height": 0.5,
+                                
+                                },
+                            }
+                            // 將 payload 轉換為可附加在 url 後的字串
+                            payload = encodeURIComponent(JSON.stringify(payload));
+                            url = 'http://127.0.0.1:8080/print_pdf?payload=' + payload;
+                        }
+
+                        if (url == '') {
+                            return;
+                        }
+
+                        // 以 url 開啟新分頁
+                        var newWindow = window.open(url, '', 'height='+screen.height + ' width='+screen.width);
+
+                    });
+                });
+            }
+
+            
+        });
+    }
+    updatePackageData();
+
 
     var cards = document.querySelectorAll("div.card-header");
     if (cards.length == 0) {
@@ -28,10 +193,19 @@ function ActiveShopeePrintOrderFunc() {
         return;
     }
 
+    // 出貨/列印寄件單按鈕
+    var button = document.createElement('a');
+    button.id = "PrintShopeeShipButton";
+    button.className = "fix-button shopee-button shopee-button--primary shopee-button--normal";
+    button.innerHTML = "<span> 讀取中 </span>";
+    button.style.marginLeft = "10px";
+
+    card.appendChild(button);
+    
+
     // <button type="button" class="fix-button shopee-button shopee-button--primary shopee-button--normal"><span> 列印出貨單 </span></button>
     var button = document.createElement('a');
     button.id = "PrintShopeeOrderButton";
-    // button.type = "button";
     button.className = "fix-button shopee-button shopee-button--primary shopee-button--normal";
     button.innerHTML = "<span> 列印出貨單 </span>";
     button.style.marginLeft = "10px";
@@ -44,6 +218,100 @@ function ActiveShopeePrintOrderFunc() {
     });
 
     // button.click();
+
+}
+
+function CreateSDJobsPayload(shop_id, orderInfo)
+{
+    // 取得 SPC_CDS Cookie
+    var cookies = document.cookie.split(';');
+    var spcCds = null;
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.startsWith('SPC_CDS=')) {
+            spcCds = cookie.substring(8);
+            break;
+        }
+    }
+
+    // orderID
+    var orderID = orderInfo.order_id;
+    // packageNumber
+    var packageNumber = orderInfo.package_list[0].package_number;
+    // channelID
+    var channelID = orderInfo.package_list[0].channel_id;
+    // fulfillment_shipping_method
+    var fulfillment_shipping_method = orderInfo.package_list[0].fulfillment_shipping_method;
+
+    console.log("fulfillment_shipping_method: " + fulfillment_shipping_method);
+
+    // 7-11 {"fulfillment_shipping_method:7", "fulfillment_carrier_name": "7-ELEVEN"}
+    // {"group_list":[{"primary_package_number":"OFG155184440275512","group_shipment_id":0,"package_list":[{"order_id":155184439241735,"package_number":"OFG155184440275512"}]}],"region_id":"TW","shop_id":910507994,"channel_id":30005,"record_generate_schema":false,"generate_file_details":[{"file_type":"C2C_SHIPPING_LABEL_HTML","file_name":"寄件單","file_contents":
+
+    // 7-11, 全家, 萊爾富
+    if (fulfillment_shipping_method == 7 || fulfillment_shipping_method == 8 || fulfillment_shipping_method == 25) {
+        return {
+            "group_list": [
+                {
+                    "primary_package_number": packageNumber,
+                    "group_shipment_id": 0,
+                    "package_list": [
+                        {
+                            "order_id": orderID,
+                            "package_number": packageNumber
+                        }
+                    ]
+                }
+            ],
+            "region_id": "TW",
+            "shop_id": shop_id,
+            "channel_id": channelID,
+            "record_generate_schema": false,
+            "generate_file_details": [
+                {
+                    "file_type": "C2C_SHIPPING_LABEL_HTML",
+                    "file_name": "寄件單",
+                    "file_contents": [
+                        6
+                    ]
+                }
+            ]
+        };
+    } 
+
+    // OK Mart {"fulfillment_carrier_name": "OK Mart", "fulfillment_shipping_method": 30015}
+    // {"group_list":[{"primary_package_number":"OFG155177278206064","group_shipment_id":0,"package_list":[{"order_id":155177277249681,"package_number":"OFG155177278206064"}]}],"region_id":"TW","shop_id":910507994,"channel_id":30014,"record_generate_schema":false,"generate_file_details":[{"file_type":"THERMAL_PDF","file_name":"寄件單","file_contents":[14]}]}
+    if (fulfillment_shipping_method == 30015) {
+        return {
+            "group_list": [
+                {
+                    "primary_package_number": packageNumber,
+                    "group_shipment_id": 0,
+                    "package_list": [
+                        {
+                            "order_id": orderID,
+                            "package_number": packageNumber
+                        }
+                    ]
+                }
+            ],
+            "region_id": "TW",
+            "shop_id": shop_id,
+            "channel_id": channelID,
+            "record_generate_schema": false,
+            "generate_file_details": [
+                {
+                    "file_type": "THERMAL_PDF",
+                    "file_name": "寄件單",
+                    "file_contents": [
+                        14
+                    ]
+                }
+            ]
+        };
+    }
+
+    return {};
 
 }
 
@@ -278,3 +546,68 @@ function PrintShopeeOrder() {
     }, 1000);
 
 }
+
+/*
+7-11 {"fulfillment_shipping_method:7", "fulfillment_carrier_name": "7-ELEVEN"}
+{"group_list":[{"primary_package_number":"OFG155184440275512","group_shipment_id":0,"package_list":[{"order_id":155184439241735,"package_number":"OFG155184440275512"}]}],"region_id":"TW","shop_id":910507994,"channel_id":30005,"record_generate_schema":false,"generate_file_details":[{"file_type":"C2C_SHIPPING_LABEL_HTML","file_name":"寄件單","file_contents":[6]}]}
+{
+    "code": 0,
+    "data": {
+        "list": [
+            {
+                "job_id": "SDK0001_356638490709a1d9e71e042131879e0d",
+                "job_name": "寄件單.7-ELEVEN*1.html",
+                "job_status": 5,
+                "job_type": 3,
+                "is_first_time": 0
+            }
+        ]
+    },
+    "message": "success",
+    "user_message": "success"
+}
+
+OK Mart {"fulfillment_carrier_name": "OK Mart", "fulfillment_shipping_method": 30015}
+{"group_list":[{"primary_package_number":"OFG155177278206064","group_shipment_id":0,"package_list":[{"order_id":155177277249681,"package_number":"OFG155177278206064"}]}],"region_id":"TW","shop_id":910507994,"channel_id":30014,"record_generate_schema":false,"generate_file_details":[{"file_type":"THERMAL_PDF","file_name":"寄件單","file_contents":[14]}]}
+{
+    "code": 0,
+    "data": {
+        "list": [
+            {
+                "job_id": "SDK0001_bdb67d9a4bad7824d272acaf0560a662",
+                "job_name": "寄件單.OK Mart*1.pdf",
+                "job_status": 5,
+                "job_type": 1,
+                "is_first_time": 0
+            }
+        ]
+    },
+    "message": "success",
+    "user_message": "success"
+}
+
+全家 {"fulfillment_carrier_name": "全家", "fulfillment_shipping_method": 8}
+{"group_list":[{"primary_package_number":"OFG155174554262974","group_shipment_id":0,"package_list":[{"order_id":155174553232543,"package_number":"OFG155174554262974"}]}],"region_id":"TW","shop_id":910507994,"channel_id":30006,"record_generate_schema":false,"generate_file_details":[{"file_type":"C2C_SHIPPING_LABEL_HTML","file_name":"寄件單","file_contents":[6]}]}
+{
+    "code": 0,
+    "data": {
+        "list": [
+            {
+                "job_id": "SDK0001_ba09897adde41cb3efed15700b53612b",
+                "job_name": "寄件單.全家*1.html",
+                "job_status": 3,
+                "job_type": 3,
+                "is_first_time": 1
+            }
+        ]
+    },
+    "message": "success",
+    "user_message": "success"
+}
+
+萊爾富
+
+
+
+
+*/
