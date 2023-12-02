@@ -9,6 +9,7 @@
     {
       "matches": [
         "https://seller.shopee.tw/*",
+        "https://external2.shopee.tw/*",
         "file:///*"
       ],
       "js": [
