@@ -1,41 +1,40 @@
 function Process7ElevenTable() {
     var style = document.createElement('style');
     style.textContent = `
-    @media print {
-        body {
-          width: 100%;
-          margin: 0;
-          padding: 0;
-        }
-      
-        #Print > table {
-          width: 100%;
-          table-layout: fixed;
-          margin-left: auto;
-          margin-right: auto;
-        }
-      
-        #Print > table > tr {
-          page-break-inside: avoid; /* 避免 tr 跨頁 */
-          page-break-after: always; /* 每個 tr 後換頁 */
-        }
-      
-        #Print > table > tr > td {
-          width: 10cm;
-          height: 15cm;
-          text-align: center;
-          vertical-align: middle;
-          page-break-inside: avoid; /* 避免 td 內容跨頁 */
-        }
 
-        #Print > table > tr > td > div {
-            /* 水平置中 */
-            margin-left: auto;
-            margin-right: auto;
-            width: fit-content;
-            height: fit-content;
-        }
-      }
+    
+    body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  
+    #Print > table {
+      width: 10.16cm;
+      table-layout: fixed;
+    }
+  
+    #Print > table > tr {
+      page-break-inside: avoid; /* 避免 tr 跨頁 */
+      page-break-after: always; /* 每個 tr 後換頁 */
+    }
+  
+    #Print > table > tr > td {
+      width: 10.16cm;
+      height: 15.24cm;
+      vertical-align: middle;
+      page-break-inside: avoid; /* 避免 td 內容跨頁 */
+    }
+
+    #Print > table > tr > td > div {
+        /* 水平置中 */
+        margin-left: auto;
+        margin-right: auto;
+        width: fit-content;
+        height: fit-content;scale: 1.15;
+    }
+  
+
     `;
     document.head.appendChild(style);
 
@@ -78,10 +77,6 @@ function Process7ElevenTable() {
 
         // 建立新的 div 元素
         var newDiv = document.createElement('div');
-        newDiv.style.overflow = 'hidden';
-        newDiv.style.width = w + 'px';
-        newDiv.style.height = 'fit-content';
-        newDiv.style.margin = '10px auto 0 auto';
         newTd.appendChild(newDiv);
 
         // 將 td 內的內容移動到新的 div 元素中
