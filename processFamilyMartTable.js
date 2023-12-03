@@ -145,7 +145,7 @@ function ProcessFamilyMartTable() {
 
     setTimeout(function () {
         window.print();
-        // window.close();
+        window.close();
     }, 1000);
 
 }
