@@ -25,12 +25,12 @@ function renderPage (num) {
 
     
     pdfDoc.getPage(num).then (function (page) {
-        var viewport = page.getViewport ({ scale: 2 });
+        var viewport = page.getViewport ({ scale: 4 });
         var canvas = document.querySelector ('canvas') ;
         var ctx = canvas.getContext ('2d') ;
         canvas.height = viewport.height * crop.height;
         canvas.width = viewport.width * crop.width;
-        viewport = page.getViewport ({ scale: 2, offsetX: viewport.width * crop.x, offsetY: viewport.height * crop.y });
+        viewport = page.getViewport ({ scale: 4, offsetX: viewport.width * crop.x, offsetY: viewport.height * crop.y });
 
         
         var renderContext = {

@@ -130,6 +130,13 @@ function ActiveShopeePrintOrderFunc() {
                             payload = {
                                 "pdf_url": url,
                                 "cookie": fullCookie,
+                                "crop": {
+                                    "x": -0.025,
+                                    "y": -0.005,
+                                    "width": 0.94,
+                                    "height": 1,
+                                
+                                },
                             }
                             // 將 payload 轉換為可附加在 url 後的字串
                             payload = encodeURIComponent(JSON.stringify(payload));
