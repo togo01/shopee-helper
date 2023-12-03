@@ -72,11 +72,12 @@ function ActiveShopeePrintOrderFunc() {
             console.log("consignmentNo: " + consignmentNo);
 
             if (consignmentNo == null || consignmentNo == "") {
+                // console.log("安排出貨！");
                 // 找到 #PrintShopeeShipButton 按鈕
                 var button = document.getElementById("PrintShopeeShipButton");
                 // 如果按鈕已經是安排出貨, 則不處理
-                if (button.querySelector("span").innerText == "安排出貨") {
-                    setTimeout(updatePackageData, 1000);
+                if (button.querySelector("span").innerText.trim() == "安排出貨") {
+                    setTimeout(updatePackageData, 2000);
                     return;
                 }
                 // 內容的 span 變成 "安排出貨"
@@ -86,8 +87,10 @@ function ActiveShopeePrintOrderFunc() {
                     // 安排出貨
                     var nextButton = document.querySelector('.next > .btns > .shopee-popover > .shopee-popover__ref > button.shopee-button.shopee-button--primary');
                     nextButton.click();
+                    setTimeout(updatePackageData, 2000);
                 });
             } else {
+                // console.log("列印寄件單！");
                 // POST https://seller.shopee.tw/api/v3/logistics/create_sd_jobs?SPC_CDS=a165db25-318b-4ee4-b8c7-7ba8031e173b&SPC_CDS_VER=2&async_sd_version=0.2
 
                 // 找到 #PrintShopeeShipButton 按鈕
