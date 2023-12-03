@@ -133,7 +133,8 @@ function ActiveShopeePrintOrderFunc() {
                             }
                             // 將 payload 轉換為可附加在 url 後的字串
                             payload = encodeURIComponent(JSON.stringify(payload));
-                            url = 'http://127.0.0.1:8080/print_pdf?payload=' + payload;
+
+                            url = chrome.runtime.getURL('pdf.html?payload=' + payload);
                         }
 
                         if (fulfillment_shipping_method == 25) {
@@ -154,7 +155,8 @@ function ActiveShopeePrintOrderFunc() {
                             }
                             // 將 payload 轉換為可附加在 url 後的字串
                             payload = encodeURIComponent(JSON.stringify(payload));
-                            url = 'http://127.0.0.1:8080/print_pdf?payload=' + payload;
+
+                            url = chrome.runtime.getURL('pdf.html?payload=' + payload);
                         }
 
                         if (url == '') {
@@ -350,6 +352,10 @@ function PrintShopeeOrder() {
     th {
     }
 
+    img {
+        image-rendering: pixelated;
+    }
+
 
     table, th, td {
         border: 0px solid black;
@@ -409,8 +415,9 @@ function PrintShopeeOrder() {
     newWindow.document.write('<div id="header" style="display: flex;flex-direction: row;align-items: center;justify-content: space-between;margin: 0.2cm 0;">');
 
     // font-family: monospace;font-size: 30px;
-    newWindow.document.write('<div style="">');
-    newWindow.document.write('<div id="order-sn" style="font-family: \'Code 39-hoch-Logitogo\', sans-serif; font-size: 25px; padding: 5px 0;">*' + orderSN + '*</div>');
+    newWindow.document.write('<div style="border: solid 1px; border-radius: 10px; padding: 10px;">');
+    // newWindow.document.write('<div id="order-sn" style="font-family: \'Code 39-hoch-Logitogo\', sans-serif; font-size: 25px; padding: 5px 0;">*' + orderSN + '*</div>');
+    newWindow.document.write('<div id="order-sn" style="height: 30px;text-align: center;padding-bottom: 5px;"><img src="http://127.0.0.1:8080/datamatrix?q=' + orderSN + '" style="height: 100%;"></img></div>');
     newWindow.document.write('<div id="order-sn" style="font-family: monospace;font-size: 20px; margin: 0 auto;">' + orderSN.substring(0, orderSN.length - 4) + '<span style="font-size: 20px;font-weight: bolder;border: solid 1px black; margin-left: 2px;">' + orderSN.substring(orderSN.length - 4) + '</span></div>');
     newWindow.document.write('</div>')
 

@@ -21,6 +21,12 @@
   "background": {
     "service_worker": "background.js"
   },
+  "web_accessible_resources": [
+    {
+        "resources": ["pdf.html"],
+        "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": [
@@ -31,6 +37,7 @@
       ],
       "js": [
         "jquery-3.7.1.min.js",
+        "pdf.js",
         "printShopeeOrder.js",
         "process7ElevenTable.js",
         "processFamilyMartTable.js",
@@ -41,30 +48,6 @@
         "font.css"
       ],
       "run_at": "document_end"
-    },
-    {
-      "matches": [
-        "https://seller.shopee.tw/awbprint*"
-      ],
-      "js": [
-        "processShopeeAwb.js"
-      ],
-      "run_at": "document_end"
-    },
-    {
-      "matches": [
-        "https://external2.shopee.tw/*"
-      ],
-      "js": [
-        "jquery-3.7.1.min.js",
-        "pdf.mjs",
-        "processHilifeTable.js"
-      ],
-      "css": [
-        "font.css"
-      ],
-      "run_at": "document_end"
     }
-
   ]
 }

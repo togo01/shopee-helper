@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=4.O,user-scalable=yes" /> -->
+    <title>PDF香看</title>
+    <style type="text/css">
+        body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #Print {
+            width: 10cm;
+            height: 15cm;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        #Print>table {
+            width: 100%;
+            table-layout: fixed;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #Print>table>tr {
+            page-break-inside: avoid;
+            /* 避免 tr 跨頁 */
+            page-break-after: always;
+            /* 每個 tr 後換頁 */
+        }
+
+        #Print>table>tr>td {
+            width: 10cm;
+            height: 15cm;
+            text-align: center;
+            vertical-align: middle;
+            page-break-inside: avoid;
+            /* 避免 td 內容跨頁 */
+        }
+
+        #pdfCanvas {
+            width: 100%;
+            height: 100%;
+            outline: 5px solid white;
+            outline-offset: -5px;
+        }
+    </style>
+    <script src="pdf.js"></script>
+    <script src="pdfPrinter.js"></script>
+</head>
+
+<body>
+    <div id="Print">
+        <table>
+            <tr>
+                <td>
+                    <div>
+                        <canvas id="pdfCanvas"></canvas>
+                    </div>
+                </td>
+        </table>
+    </div>
+</body>
+
+</html>
