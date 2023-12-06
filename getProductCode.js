@@ -27,6 +27,7 @@ function GetProductCode() {
 
 
     var totalQty = 0;
+    var totalWeight = 0;
     for (var i = 1; i < items.length; i++) {
         let item = items[i];
 
@@ -82,6 +83,16 @@ function GetProductCode() {
                     productIdNode.className = "product-id";
                     productIdNode.innerText = "自編碼: ";
                     metaNode.appendChild(productIdNode);
+
+                    var productWeightNode = metaNode.querySelector("div.product-weight");
+                    if (productWeightNode != null) {
+                        productWeightNode.remove();
+                    }
+                    var productWeightNode = document.createElement("div");
+                    productWeightNode.className = "product-weight";
+                    productWeightNode.innerText = "重量: ?";
+                    metaNode.appendChild(productWeightNode);
+
 
                     // 如果 data 不是陣列
                     if (!Array.isArray(data)) {
@@ -188,8 +199,13 @@ function GetProductCode() {
                         stock.appendChild(div);
                     }
 
+                    GetWeight();
 
-                });
+
+                }).catch(function (err) {
+                    console.log('Fetch Error :-S', err);
+                    GetWeight();
+                });;
         } else {
             // 使用商品名稱查詢
             fetch('http://localhost:8080/product_by_name?q=' + itemTitle.innerText.trim())
@@ -206,6 +222,15 @@ function GetProductCode() {
                     productIdNode.className = "product-id";
                     productIdNode.innerText = "自編碼: ";
                     metaNode.appendChild(productIdNode);
+
+                    var productWeightNode = metaNode.querySelector("div.product-weight");
+                    if (productWeightNode != null) {
+                        productWeightNode.remove();
+                    }
+                    var productWeightNode = document.createElement("div");
+                    productWeightNode.className = "product-weight";
+                    productWeightNode.innerText = "重量: ?";
+                    metaNode.appendChild(productWeightNode);
 
                     // 如果 data 不是陣列
                     if (!Array.isArray(data)) {
@@ -319,11 +344,125 @@ function GetProductCode() {
                     tag.innerText = "無編碼商品，以名稱模糊搜尋反查品項，需人工再確認";
                     itemTitle.before(tag);
 
-                
+                    GetWeight();
                 }
-            );
+            ).catch(function (err) {
+                console.log('Fetch Error :-S', err);
+                GetWeight();
+            });
         }
 
+        function GetWeight() {
+
+            // 產品包裝重量係數
+            var weightFactor = 1.15;
+
+            // 數量
+            var qty = item.querySelector("div.qty");
+            var itemQuantity = Number.parseInt(qty.innerText);
+
+            // 查詢文字為 itemMetaText + 標題
+            var queryText = itemMetaText + " " + itemTitle.innerText;
+
+            // 查找 數字+入 或 數字+入裝 或 數字+包 不分大小寫，並取出數字
+            var reg = /(\d+)(入|入裝|包)/gi;
+            var result = reg.exec(queryText);
+            var subQty = 1;
+            if (result != null) {
+                subQty = Number.parseInt(result[1]);
+            } else {
+                // 特殊處理 數字+數字 組合，例如 2+1 或 2+2
+                reg = /(\d+)\+(\d+)/gi;
+                result = reg.exec(queryText);
+                if (result != null) {
+                    subQty = Number.parseInt(result[1]) + Number.parseInt(result[2]);
+                }
+            }
+            
+
+            // 查找 數字+g 或 數字+cc 或 數字+ml 不分大小寫，並取出數字
+            var reg = /(\d+)(g|cc|ml)/gi;
+            var result = reg.exec(queryText);
+            var weightValue = 0;
+            if (result != null) {
+                weightValue = Number.parseInt(result[1]) / 1000 * subQty;
+            }
+
+            // 查找 數字+g+數字+g 如 2g+2g 不分大小寫，並取出數字相加
+            reg = /(\d+)(g)\+(\d+)(g)/gi;
+            result = reg.exec(queryText);
+            if (result != null) {
+                weightValue = (Number.parseInt(result[1]) / 1000 + Number.parseInt(result[3]) / 1000) * subQty;
+            }
+
+            // 查找 數字+kg 不分大小寫，並取出數字
+            reg = /(\d+)(kg)/gi;
+            result = reg.exec(queryText);
+            if (result != null) {
+                weightValue = Number.parseInt(result[1]) * subQty;
+            }
+
+            // 查找 數字+加侖 或 數字+gal 不分大小寫，並取出數字
+            reg = /(\d+)(加侖|gal)/gi;
+            result = reg.exec(queryText);
+            if (result != null) {
+                weightValue = Number.parseInt(result[1]) * 3.785 * subQty;
+            }
+            
+            if (weightValue == 0) {
+                weightValue = 0.2;
+            }
+
+            totalWeight += weightValue * weightFactor * itemQuantity;
+            UpdatePackageWeight();
+
+            // 顯示重量
+            var productWeightNode = item.querySelector("div.product-weight");
+            if (productWeightNode != null) {
+                if (weightValue * weightFactor < 100) {
+                    if (itemQuantity > 1) {
+                        productWeightNode.innerText = "重量: " + (weightValue * weightFactor).toFixed(3) + "kg × " + itemQuantity + " = " + (weightValue * weightFactor * itemQuantity).toFixed(3) + "kg (預估)";
+                    } else {
+                        productWeightNode.innerText = "重量: " + (weightValue * weightFactor).toFixed(3) + "kg (預估)";
+                    }
+                } else {
+                    if (itemQuantity > 1) {
+                        productWeightNode.innerText = "重量: " + (weightValue * weightFactor).toFixed(1) + "kg × " + itemQuantity + " = " + (weightValue * weightFactor * itemQuantity).toFixed(1) + "kg (預估)";
+                    } else {
+                        productWeightNode.innerText = "重量: " + (weightValue * weightFactor).toFixed(1) + "kg (預估)";
+                    }
+                }
+            }
+
+            
+        }
+
+    }
+
+    function UpdatePackageWeight() {
+        var maxWeight = 5.0;
+
+        var finalWeight = totalWeight + 0.3;
+
+        var packageWeight = document.querySelector("div#package-weight-progress");
+        if (packageWeight != null) {
+            // 設定 style width
+            packageWeight.style.width = (finalWeight / maxWeight * 100) + "%";
+            // 根據重量顯示不同顏色，低於 80% 為綠色，介於 80% ~ 100% 為黃色，高於 100% 為紅色
+            if (finalWeight / maxWeight < 0.8) {
+                packageWeight.style.backgroundColor = "#6ee2c6";
+            } else if (finalWeight / maxWeight < 1) {
+                packageWeight.style.backgroundColor = "#eabc8e";
+            } else {
+                packageWeight.style.backgroundColor = "#f28b82";
+            }
+        }
+
+        var packageWeightText = document.querySelector("div#package-weight-des");
+        // " 0.0kg / 4.0kg "
+        if (packageWeightText != null) {
+            packageWeightText.innerText = finalWeight.toFixed(1) + "kg / " + maxWeight.toFixed(1) + "kg";
+        }
     }
 
 

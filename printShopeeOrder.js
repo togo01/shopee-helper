@@ -156,9 +156,9 @@ function ActiveShopeePrintOrderFunc() {
                                 "pdf_url": url,
                                 "cookie": fullCookie,
                                 "crop": {
-                                    "x": 0,
-                                    "y": 0,
-                                    "width": 0.5,
+                                    "x": -0.028,
+                                    "y": -0.005,
+                                    "width": 0.46,
                                     "height": 0.5,
                                 
                                 },
@@ -204,6 +204,53 @@ function ActiveShopeePrintOrderFunc() {
     if (card == null) {
         return;
     }
+
+    // 重量條
+    // <div data-v-900cef94="" class="percent-bar-wrapper"><div data-v-900cef94="" class="percent-bar"><div data-v-900cef94="" class="percent-bar-progress" style="width: 62.5%;"></div></div><div data-v-900cef94="" class="percent-des"> 2.5kg / 4.0kg </div></div>
+    var percentBarWrapper = document.createElement('div');
+    percentBarWrapper.className = "percent-bar-wrapper";
+    percentBarWrapper.style.margin = "0 0 0 10px";
+    card.appendChild(percentBarWrapper);
+
+    var percentBar = document.createElement('div');
+    percentBar.className = "percent-bar";
+    percentBar.style.width = "100px";
+    percentBar.style.height = "10px";
+    percentBar.style.margin = "4px 0";
+    percentBar.style.borderRadius = "10px";
+    // 深灰色
+    percentBar.style.background = "#ddd";
+    percentBar.style.overflow = "hidden";
+    percentBarWrapper.appendChild(percentBar);
+
+    var percentBarProgress = document.createElement('div');
+    percentBarProgress.id = "package-weight-progress";
+    percentBarProgress.className = "percent-bar-progress";
+    percentBarProgress.style.width = "0%";
+    // height: 100%;
+    // min-width: 10%;
+    // border-radius: 10px;
+    // background: #5c7;
+    percentBarProgress.style.height = "100%";
+    percentBarProgress.style.minWidth = "10%";
+    percentBarProgress.style.borderRadius = "10px";
+    percentBarProgress.style.background = "#5c7";
+    percentBar.appendChild(percentBarProgress);
+
+    var percentDes = document.createElement('div');
+    percentDes.id = "package-weight-des";
+    percentDes.className = "percent-des";
+    percentDes.innerText = "0.0kg / 4.0kg";
+    // color: #999;
+    // font-size: 12px;
+    // line-height: 16px;
+    percentDes.style.color = "#999";
+    percentDes.style.fontSize = "12px";
+    percentDes.style.lineHeight = "16px";
+    percentDes.style.textAlign = "center";
+    percentBarWrapper.appendChild(percentDes);
+
+
 
     // 出貨/列印寄件單按鈕
     var button = document.createElement('a');
