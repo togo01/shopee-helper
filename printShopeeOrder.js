@@ -159,7 +159,7 @@ function ActiveShopeePrintOrderFunc() {
                                     "x": -0.028,
                                     "y": -0.005,
                                     "width": 0.46,
-                                    "height": 0.5,
+                                    "height": 0.49,
                                 
                                 },
                             }
