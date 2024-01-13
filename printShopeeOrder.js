@@ -125,7 +125,7 @@ function ActiveShopeePrintOrderFunc() {
                             url = 'https://seller.shopee.tw/api/v3/logistics/download_sd_job?job_id=' + jobID;
                         }
 
-                        if (fulfillment_shipping_method == 30015) {
+                        if (fulfillment_shipping_method == 30014 || fulfillment_shipping_method == 30015) {
                             // seller.shopee.tw/awbprint?job_id=SDK0001_ bdb67d9a4bad7824d272acaf0560a662&shop_id =910507994&first_time=0
                             // url = 'https://seller.shopee.tw/awbprint?job_id=' + jobID + '&shop_id=' + shopID + '&first_time=0';
                             url = 'https://seller.shopee.tw/api/v3/logistics/download_sd_job?job_id=' + jobID;
@@ -340,7 +340,7 @@ function CreateSDJobsPayload(shop_id, orderInfo)
 
     // OK Mart {"fulfillment_carrier_name": "OK Mart", "fulfillment_shipping_method": 30015}
     // {"group_list":[{"primary_package_number":"OFG155177278206064","group_shipment_id":0,"package_list":[{"order_id":155177277249681,"package_number":"OFG155177278206064"}]}],"region_id":"TW","shop_id":910507994,"channel_id":30014,"record_generate_schema":false,"generate_file_details":[{"file_type":"THERMAL_PDF","file_name":"寄件單","file_contents":[14]}]}
-    if (fulfillment_shipping_method == 30015) {
+    if (fulfillment_shipping_method == 30014 || fulfillment_shipping_method == 30015) {
         return {
             "group_list": [
                 {
@@ -467,7 +467,7 @@ function PrintShopeeOrder() {
         }
     });
 
-    newWindow.document.write('<div id="title" style="text-align: center;font-size: 30px;font-weight: bold;">宗明藥局 - 出貨單</div>');
+    newWindow.document.write('<div id="title" style="text-align: center;font-size: 30px;font-weight: bold;">出貨單</div>');
 
     newWindow.document.write('<div id="header" style="display: flex;flex-direction: row;align-items: center;justify-content: space-between;margin: 0.2cm 0;">');
 
