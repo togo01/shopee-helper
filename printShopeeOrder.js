@@ -451,7 +451,7 @@ function PrintShopeeOrder() {
 
 
     var orderSN = "未知訂單編號";
-    document.querySelectorAll(".shopee-card__content > .section").forEach(function (section) {
+    document.querySelectorAll(".eds-card__content > .section").forEach(function (section) {
 
         var sectionName = section.querySelector(".name");
         if (sectionName == null) {
